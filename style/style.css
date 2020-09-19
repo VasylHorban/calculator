@@ -1,12 +1,17 @@
 @import 'reset.css';
 
+body{
+    background: #fdd1bd
+}
 .calculator{
     max-width: 450px;
     min-width: 300px;
     max-height: 700px;
     padding: 15px 10px;
-    background: black;
+    background: rgba(0, 0, 0, 0.33);
     font-family: sans-serif;
+    border-radius: 5px;
+    
 }
 .calculator_theme{
     margin: 40px auto;
@@ -31,21 +36,32 @@
 
 .calculator__button_container{
     margin-top: 15px;
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    grid-column-gap: 1px;
+    grid-row-gap: 1px;
 }
 .calculator__button{
-    width: 20%;
-    min-height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
     font-size: 18px;
     background: #ebe7e7;
-    border: 1px solid black;
+    border: none;
     transition: all ease .3s;
-    font-family: sans-serif
+    font-family: sans-serif;
+    cursor: pointer;
 }
 .calculator__button:hover{
-    background: #f7f7af;
+    background: rgb(247, 228, 175);
 }
 .calculator__button:active{
     background: #fafaeb;
+}
+.calculator__button_equal{
+    grid-column: 1/6
+}
+.calculator__button_clean{
+    grid-column: 3/5
 }
