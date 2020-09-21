@@ -1,7 +1,8 @@
+'use strict'
 const getS = selector => document.querySelector(selector);
 
 function generate() {
-    let arr = ['1', '2', '3', '+', '-', '4', '5', '6', '*', '/', '7', '8', '9', '(', ')', '.', '0', '00', '^', 'sqrt', 'cos', 'sin', 'c', 'history', '='];
+    let arr = ['1', '2', '3', '+', '-', '4', '5', '6', '*', '/', '7', '8', '9', '(', ')', '.', '0', '00', '^', 'sqrt', 'cos', 'sin', 'c', '←', '='];
     arr.forEach(data => {
         let btn = document.createElement('button');
         if (data == '=') {
@@ -19,19 +20,10 @@ function generate() {
 }
 generate();
 
-
-
-
 const calculatorModule = (function () {
     const outHtml = {};
     let innerData = '';
     let oldInnerData = '';
-    const temp = [];
-    let numbers = '';
-    let expression = [];
-    let expressionIndex = 0;
-
-    let count = 0;
 
     function getHtml() {
         outHtml.history = getS('.calculator__history_info_output')
@@ -51,29 +43,59 @@ const calculatorModule = (function () {
     };
 
     function calculate(str) {
-        console.log(str)
         let output = getExpression(str);
-        console.log(output)
         let result = counting(output);
         return result;
 
     }
 
+    function complexOperators(num, oper) {
+        let result = '';
+        console.log(num, oper)
+        switch (oper) {
+            case 'sqrt':
+                result = Math.sqrt(parseInt(num));
+                break;
+            case 'sin':
+                result = Math.sin(parseInt(num));
+                break;
+            case 'cos':
+                result = Math.cos(parseInt(num));
+                break;
+        }
+        return result.toFixed(5)
+    }
+
     function getExpression(input) {
-        console.log(input.length)
         let output = '';
         let operStack = [];
-        for(let i = 0; i < input.length; i++) {
-            console.log(i)
-            console.log('here')
+        for (let i = 0; i < input.length; i++) {
             if (isDelimeter(input[i])) {
                 continue;
+            }
+            if (input[i].match(/[cosinqrt]/)) {
+                let oper = '';
+                let num = ''
+                while (input[i].match(/[cosinqert]/)) {
+                    oper += input[i];
+                    i++;
+                    if (input[i] === ' ') break;
+                }
+                if (isDelimeter(input[i])) {
+                    i++;
+                }
+                while (!isNaN(parseInt(input[i]))) {
+                    num += input[i];
+                    i++;
+                    if (input[i] === ' ' || i === input.length) break;
+                }
+                output += complexOperators(num, oper) + ' ';
             }
             if (!isNaN(parseInt(input[i]))) {
                 while (!isDelimeter(input[i]) && !isOperator(input[i])) {
                     output += input[i];
                     i++;
-                    if (i == input.Length) break;
+                    if (i == input.length) break;
                 }
                 output += " ";
                 i--;
@@ -92,14 +114,15 @@ const calculatorModule = (function () {
                         if (getPriority(input[i]) <= getPriority(operStack[operStack.length - 1])) {
                             output += operStack.pop().toString() + " ";
                         }
-                        operStack.push(Number.parseInt(input[i].toString()));
+
                     }
+                    operStack.push(input[i].toString());
+                    //                                                operStack.push(Number.parseInt(input[i].toString()));
+
+
                 }
             }
-            console.log(operStack)
-            console.log(output)
         }
-        console.log(operStack)
         while (operStack.length > 0) {
             output += operStack.pop() + " "
         }
@@ -108,8 +131,50 @@ const calculatorModule = (function () {
 
     }
 
-    function counting(str) {
+    function counting(input) {
+        let result = 0;
+        let temp = [];
 
+        for (let i = 0; i < input.length; i++) {
+            if (!isNaN(parseInt(input[i])) || input[i] == '.') {
+                let a = '';
+                while (!isDelimeter(input[i]) && !isOperator(input[i])) {
+                    a += input[i];
+                    i++;
+                    if (i == input.length) break;
+                }
+                temp.push(a) ///!!!!
+                i--;
+            } else if (isOperator(input[i])) {
+                let a = temp.pop();
+                let b = temp.pop();
+                if(a.match('.')) a = parseFloat(a)
+                else a = parseInt(a)
+                
+                if(b.match('.')) b = parseFloat(b)
+                else b = parseInt(b)
+                
+                switch (input[i]) {
+                    case '+':
+                        result = b + a
+                        break;
+                    case '-':
+                        result = b - a
+                        break;
+                    case '*':
+                        result = b * a
+                        break;
+                    case '/':
+                        result = b / a
+                        break;
+                    case '^':
+                        result = Math.round(b ** a);
+                        break;
+                }
+                temp.push(result)
+            }
+        }
+        return temp[temp.length - 1];
     }
 
     function isDelimeter(c) {
@@ -119,14 +184,14 @@ const calculatorModule = (function () {
         return false;
     }
 
-    function isOperator(c) {///!!!!!
-        if (("+-/*^()".indexOf(с) != -1)) {
+    function isOperator(c) { ///!!!!!
+        if (("+-/*^()".indexOf(c) != -1)) {
             return true;
         }
         return false;
     }
 
-    function getPrioryty(s) {
+    function getPriority(s) {
         switch (s) {
             case '(':
                 return 0;
@@ -148,22 +213,34 @@ const calculatorModule = (function () {
     }
 
     function inner(type) {
+        if (oldInnerData != '') {
+            oldInnerData = '';
+            innerData = '';
+            refresh();
+        }
         if (type === 'c') {
             innerData = '0';
             oldInnerData = '';
-            refresh();
-            count = 0;
-
         } else if (type.match(/=/)) {
+           if(innerData !== ''){
             oldInnerData = innerData;
             innerData = calculate(innerData);
-            refresh();
+           }
+
+        } else if (type === '←') {
+            let arr = innerData.split('');
+            if (arr[arr.length - 1] === ' ') {
+                arr.splice(arr.length - 3, 3)
+            } else {
+                arr.pop();
+            }
+            innerData = arr.join('')
 
         } else if (!isNaN(parseInt(type)) || type.match(/\.|\(|\)/)) {
             if (innerData == '0') innerData = ''
             innerData += type;
         } else {
-            innerData += type;
+            innerData += ' ' + type + ' ';
         }
         refresh();
 
