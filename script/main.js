@@ -2,8 +2,8 @@
 /**
  * функція для отримання DOM елемента 
  * 
- * @param {string} selector селектор дом елемента.
- * @return {object} - DOM лемент
+ * @param {string} selector  - селектор дом елемента.
+ * @return {object} - DOM елемент
  */
 const getS = selector => document.querySelector(selector);
 /**
